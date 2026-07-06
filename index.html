@@ -489,70 +489,35 @@ function clasificacion(global){
 }
 
 function intentarGuardarEnSheet(payload, global){
-  if(!GOOGLE_SHEET_URL) return false;
-  const form = document.getElementById("sheet-form");
-  form.action = GOOGLE_SHEET_URL;
-  form.innerHTML = "";
-  const fields = {...payload, global: global, clasificacion: clasificacion(global), codigo: lastCode};
-  Object.keys(fields).forEach(key => {
-    const input = document.createElement("input");
-    input.type = "hidden";
-    input.name = key;
-    input.value = fields[key];
-    form.appendChild(input);
-  });
-  form.submit();
-  return true;
+    if(!GOOGLE_SHEET_URL) return false;
+    
+    // Unificamos las variables para que el Apps Script las lea bien
+    const datosFinales = {
+        nombre: payload.nombre || "Paciente",
+        c1: payload.c1 || 0,
+        c2: payload.c2 || 0,
+        c3: payload.c3 || 0,
+        c4: payload.c4 || 0,
+        c5: payload.c5 || 0,
+        c6: payload.c6 || 0,
+        c7: payload.c7 || 0,
+        scoreGlobal: global,
+        diagnostico: clasificacion(global)
+    };
+
+    // Enviamos los datos de forma limpia
+    fetch(GOOGLE_SHEET_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(datosFinales)
+    })
+    .then(() => {
+        alert("¡Cuestionario guardado con éxito en la planilla!");
+    })
+    .catch(error => {
+        console.error('Error al guardar:', error);
+    });
 }
-
-function showResult(global, pname, autoSaved){
-  const hero = document.getElementById("result-hero");
-  const title = document.getElementById("result-title");
-  const desc = document.getElementById("result-desc");
-
-  if(global <= 2){
-    hero.className = "result-hero muybuena";
-    title.textContent = "Muy buena";
-    desc.textContent = "Tus respuestas muestran un sueño de muy buena calidad. De todas formas, tu médico va a revisar el detalle completo.";
-  } else if(global <= 5){
-    hero.className = "result-hero buena";
-    title.textContent = "Buena";
-    desc.textContent = "Tus respuestas muestran un sueño de buena calidad, sin señales importantes de alteración.";
-  } else if(global <= 10){
-    hero.className = "result-hero regular";
-    title.textContent = "Regular";
-    desc.textContent = "Tus respuestas sugieren aspectos del sueño para conversar con tu médico. No es un diagnóstico: es un punto de partida para tu consulta.";
-  } else {
-    hero.className = "result-hero mala";
-    title.textContent = "Mala";
-    desc.textContent = "Tus respuestas sugieren dificultades relevantes para dormir. Es importante que compartas este resultado con tu médico para definir los próximos pasos.";
-  }
-
-  document.getElementById("code-box").textContent = lastCode;
-
-  if(autoSaved){
-    document.getElementById("autosave-confirm").style.display = "block";
-    document.getElementById("manual-send-card").style.display = "none";
-  } else {
-    document.getElementById("autosave-confirm").style.display = "none";
-    document.getElementById("manual-send-card").style.display = "block";
-  }
-
-  const waText = `Resultado de mi cuestionario de sueño (PSQI) — ${pname}.%0ACódigo: ${lastCode}`;
-  document.getElementById("whatsapp-btn").href = `https://wa.me/?text=${waText}`;
-
-  const emailSubject = encodeURIComponent(`Resultado PSQI — ${pname}`);
-  const emailBody = encodeURIComponent(`Resultado de mi cuestionario de sueño (PSQI).\n\nNombre: ${pname}\nCódigo: ${lastCode}`);
-  document.getElementById("email-btn").href = `mailto:${DOCTOR_EMAIL}?subject=${emailSubject}&body=${emailBody}`;
-}
-
-function copiarCodigo(){
-  navigator.clipboard.writeText(lastCode).then(() => {
-    const c = document.getElementById("confirm-copy");
-    c.style.display = "block";
-    setTimeout(() => c.style.display = "none", 2500);
-  });
-}
-</script>
-</body>
-</html>
