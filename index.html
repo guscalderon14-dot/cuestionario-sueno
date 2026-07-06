@@ -490,8 +490,8 @@ function clasificacion(global){
 
 function intentarGuardarEnSheet(payload, global){
     if(!GOOGLE_SHEET_URL) return false;
-    
-    // Unificamos las variables para que el Apps Script las lea bien
+
+    // Estructura limpia para enviar a Google Sheets
     const datosFinales = {
         nombre: payload.nombre || "Paciente",
         c1: payload.c1 || 0,
@@ -505,7 +505,7 @@ function intentarGuardarEnSheet(payload, global){
         diagnostico: clasificacion(global)
     };
 
-    // Enviamos los datos de forma limpia
+    // Envío silencioso por detrás
     fetch(GOOGLE_SHEET_URL, {
         method: 'POST',
         mode: 'no-cors',
@@ -514,10 +514,9 @@ function intentarGuardarEnSheet(payload, global){
         },
         body: JSON.stringify(datosFinales)
     })
-    .then(() => {
-        alert("¡Cuestionario guardado con éxito en la planilla!");
-    })
-    .catch(error => {
-        console.error('Error al guardar:', error);
-    });
+    .then(() => console.log("Datos enviados."))
+    .catch(error => console.error("Error al guardar:", error));
+
+    // CLAVE: Permite que el formulario continúe su flujo y muestre el resultado en pantalla
+    return true;
 }
